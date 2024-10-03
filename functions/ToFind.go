@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	
 )
 
 // voir strings.Contains() pour le mot https://www.geeksforgeeks.org/string-contains-function-in-golang-with-examples/
@@ -77,7 +78,9 @@ func ToFind() {
 
 			if !correctGuess {
 				lives--
+				
 			}
+
 		}
 
 		// 5. plus de vie ff
@@ -92,3 +95,4 @@ func ToFind() {
 		}
 	}
 }
+
