@@ -4,6 +4,5 @@ import hg "hangman/functions"
 
 
 func main() {
-	hg.ToFind()
-
+	hg.Word()
 }
