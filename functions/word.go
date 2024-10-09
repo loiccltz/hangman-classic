@@ -54,35 +54,47 @@ func Word() {
 		fmt.Scanln(&input)
 		input = strings.ToLower(input)
 
-		allLetters += input
-
-		// check provided letters
-		for _, inputLetter := range input {
-			runeLetter := rune(inputLetter)
-			
-			if usedLetters[runeLetter] {
-				fmt.Printf("Vous avez déjà utilisé cette lettre: %c\n", runeLetter)
-				continue
+		// Vérifie si le joueur a entré un mot complet ou une lettre
+	if len(input) >= 2 {
+		if input == string(wordRunes) {
+				// Cas où le joueur entre un mot complet
+				// Le joueur a deviné le mot correctement
+				fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
+				break
+			} else {
+				// Le mot est incorrect, on retire 2 vies
+				lives -= 2
+				fmt.Printf("Mot incorrect ! Vous perdez 2 vies.\n")
 			}
+	} else {
 
-			usedLetters[inputLetter] = true
-
+		
+		allLetters += input
+		
+		inputLetter := rune(input[0])
+		// check provided letters
+		
+		if usedLetters[inputLetter] {
+			fmt.Printf("Vous avez déjà utilisé cette lettre: %c\n", inputLetter)
+			continue
+		}
+			
 			correctGuess := false
-
+			
 			for i, wordLetter := range wordRunes {
-				if inputLetter == wordLetter {
+				if inputLetter == wordLetter || (inputLetter == 'e' && wordLetter == 'é') || (inputLetter == 'é' && wordLetter == 'e') {
 					blanks[i] = wordLetter
 					correctGuess = true
 				}
 			}
-
+			
 			if !correctGuess {
 				lives--
-
+				
 				// afficher hangman
 				linesDisplayed = showHangman(linesDisplayed)
 			}
-		}
+	}
 
 		// if no more lives, you lost
 		if lives <= 0 {
