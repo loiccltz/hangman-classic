@@ -2,6 +2,7 @@ package hangman
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -54,7 +55,30 @@ func Word() {
 		fmt.Scanln(&input)
 		input = strings.ToLower(input)
 
-		// Vérifie si le joueur a entré un mot complet ou une lettre
+
+	
+	if input == "stop" { // si le joueur entre STOP
+		saveData := map[string]interface{}{ // on enregistre l'état de la partie
+			"word":           word,
+			"lives":          lives,
+			"blanks":         blanks,
+			"guessedLetters": allLetters,
+			"usedLetters":    usedLetters,
+		}
+		
+		file, err := os.Create("save.txt") // on créer le fichier save.txt / met a jour
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		
+		jsonData, err := json.Marshal(saveData) // on transforme les données en json
+		if err != nil {
+			log.Fatal(err)
+		}
+		file.Write(jsonData)
+		break
+	}
 	if len(input) >= 2 {
 		if input == string(wordRunes) {
 				// Cas où le joueur entre un mot complet
