@@ -29,71 +29,96 @@ func Word() {
 	}
 
 	word := Word[rand.Intn(len(Word))]
+	wordRunes := []rune(word)
 	lives := 10
 
-	//generate the word blanks  "php" -> p_p
-	blanks := []string{}
-	for range word {
-		blanks = append(blanks, "_")
+	// permet de cacher le mot "php" -> p_p
+	blanks := make([]rune, len(wordRunes))
+	for i := range blanks {
+		blanks[i] = '_' 
 	}
 
 	var allLetters string
 	usedLetters := make(map[rune]bool)
 
-	// Variable pour garder une trace du nombre de lignes affichées
+	// Variable pour garder une trace du nombre de lignes deja affichées dans le fichier du pendu hangman.txt
 	var linesDisplayed int
 
 	for {
 		// show the word blanks and ask for letters
-		fmt.Printf("\n %d ❤️, Word: %s, \n", lives, strings.Join(blanks, " "))
-		fmt.Print(len(word), " Word letter: ", allLetters)
+		fmt.Printf("\n %d ❤️, Mot: %s, \n", lives, strings.Join(convertRuneSliceToStringSlice(blanks), " ")) // on convertie le slice de rune en slice de string
+		fmt.Println(" Mot de : ", len(word), " lettres ", "\n")
+		fmt.Println("Lettre déjà proposée : ", allLetters, "\n")
 
 		var input string
 		fmt.Scanln(&input)
 		input = strings.ToLower(input)
 
-		allLetters += input
-
-		// check provided letters
-		for _, inputLetter := range input {
-			if usedLetters[inputLetter] {
-				fmt.Printf("You have already used the letter: %c\n", inputLetter)
-				continue
+		// Vérifie si le joueur a entré un mot complet ou une lettre
+	if len(input) >= 2 {
+		if input == string(wordRunes) {
+				// Cas où le joueur entre un mot complet
+				// Le joueur a deviné le mot correctement
+				fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
+				break
+			} else {
+				// Le mot est incorrect, on retire 2 vies
+				lives -= 2
+				fmt.Printf("Mot incorrect ! Vous perdez 2 vies.\n")
 			}
+	} else {
 
-			usedLetters[inputLetter] = true
-
+		
+		allLetters += input
+		
+		inputLetter := rune(input[0])
+		// check provided letters
+		
+		if usedLetters[inputLetter] {
+			fmt.Printf("Vous avez déjà utilisé cette lettre: %c\n", inputLetter)
+			continue
+		}
+			
 			correctGuess := false
-
-			for i, wordLetter := range word {
-				if inputLetter == wordLetter {
-					blanks[i] = string(inputLetter)
+			
+			for i, wordLetter := range wordRunes {
+				if inputLetter == wordLetter || (inputLetter == 'e' && wordLetter == 'é') || (inputLetter == 'é' && wordLetter == 'e') {
+					blanks[i] = wordLetter
 					correctGuess = true
 				}
 			}
-
+			
 			if !correctGuess {
 				lives--
-
+				
 				// afficher hangman
 				linesDisplayed = showHangman(linesDisplayed)
 			}
-		}
+	}
 
 		// if no more lives, you lost
 		if lives <= 0 {
-			fmt.Printf("\n 0 ❤️, Word: %s - sorry, you lost!\n", word)
+			fmt.Printf("\n 0 ❤️, Mot: %s - Vous avez perdu!\n", string(wordRunes))
 			break
 		}
 		// if word is guessed, you won
-		if word == strings.Join(blanks, "") {
-			fmt.Printf("\n %d ❤️, Word: %s - you won, congrats!\n", lives, word)
+		if string(wordRunes) == string(blanks) {
+			fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
 			break
 		}
 	}
 }
 
-// Fonction pour afficher les 8 premières lignes de hangman.txt
+// Fonction pour convertir un slice de rune en slice de string
+func convertRuneSliceToStringSlice(runes []rune) []string {
+	strings := make([]string, len(runes))
+	for i, r := range runes {
+		strings[i] = string(r)
+	}
+	return strings
+}
+
+// fonction pour afficher les 8 premieres du pendu
 func showHangman(linesDisplayed int) int {
 	hangmanFile, err := os.Open("dictionnaries/hangman.txt")
 	if err != nil {
@@ -103,16 +128,16 @@ func showHangman(linesDisplayed int) int {
 
 	scanner := bufio.NewScanner(hangmanFile)
 	lineCount := 0
-	startLine := linesDisplayed // Lignes déjà affichées
+	startLine := linesDisplayed // Lignes déja affichées
 
 	fmt.Println("\n--- Hangman Status ---")
 	for scanner.Scan() {
-		// Si on atteint 8 nouvelles lignes, on arrête
+		// Si on atteint 8 nouvelles lignes on arrete
 		if lineCount >= startLine+8 {
 			break
 		}
 
-		// On saute les lignes déjà affichées
+		// On saute les lignes déja affichées
 		if lineCount < startLine {
 			lineCount++
 			continue
