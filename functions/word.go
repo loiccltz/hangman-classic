@@ -46,7 +46,7 @@ func Word() {
 
 
 	var allLetters string
-	usedLetters := make(map[rune]bool)
+	usedLetters := make(map[rune]bool) // 
 
 	// Variable pour garder une trace du nombre de lignes deja affichées dans le fichier du pendu hangman.txt
 	var linesDisplayed int
@@ -73,7 +73,7 @@ func Word() {
 		for _, letter := range saveData["usedLetters"].(string) {
 			usedLetters[rune(letter)] = true
 		}
-	
+
 		allLetters = saveData["guessedLetters"].(string)
 	}
 	
@@ -90,6 +90,8 @@ func Word() {
 
 		if input == "stop" { // si le joueur entre STOP
 			saveData := map[string]interface{}{ // on enregistre l'état de la partie
+
+			// clé ici string	// type donc ici interface
 				"word":           word,
 				"lives":          lives,
 				"blanks":         string(blanks), // on stock en string sinon cela ne marche pas avec le JSON

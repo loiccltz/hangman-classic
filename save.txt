@@ -1,1 +1,1 @@
-{"blanks":"_______","guessedLetters":"","lives":10,"usedLetters":"","word":"biensur"}
+{"blanks":"______","guessedLetters":"","lives":10,"usedLetters":"","word":"biensur"}
