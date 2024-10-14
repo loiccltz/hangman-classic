@@ -114,7 +114,7 @@ func Word() {
 		}
 
 		// Permet d'entrer un mot de 2 lettres ou plus
-		if len(input) > 1 {
+		if len(input) > 2 {
 			if input == word { // si le mot en entré = mot choisi, on gagne
 				fmt.Printf("\n %d ❤️, Word: %s - You won, congrats!\n", lives, word)
 				break
@@ -231,3 +231,5 @@ func showHangman(linesDisplayed int) int {
 	fmt.Printf("----------------------\n")
 	return lineCount
 }
+
+
