@@ -11,13 +11,14 @@ import (
 	"strings"
 )
 
+// voir strings.Contains() pour le mot https://www.geeksforgeeks.org/string-contains-function-in-golang-with-examples/
 
 func Word() {
 
 	SaveLoad := flag.Bool("startWidth", false, "Permet de charger un fichier de sauvegarde")
 	flag.Parse()
 
-
+	// je lit le document word.txt
 	file, err := os.Open("dictionnaries/words.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -26,31 +27,29 @@ func Word() {
 
 	scanner := bufio.NewScanner(file)
 
-	// je defini word ( en dehors de la boucle)
+	// je defini word (en dehors de la boucle)
 	var Word []string
 	for scanner.Scan() {
 		var tab = scanner.Text()
 		Word = append(Word, tab) // j'ajoute le contenue de tab a Word
 	}
 
-	word := Word[rand.Intn(len(Word))]
+	word := Word[rand.Intn(len(Word))] // je prend le nombre de lettre dans le mot
 	wordRunes := []rune(word)
-	lives := 10
+	lives := 10 // je met la vie a 10
 
-	// permet de cacher le mot "php" -> p_p
+	// permet de cacher chaque lettres du mot par "_"
 	blanks := make([]rune, len(wordRunes))
 	for i := range blanks {
 		blanks[i] = '_'
 	}
 
-
-
+	// je laisse imprimé la/les lettres mis en input
 	var allLetters string
-	usedLetters := make(map[rune]bool) // 
+	usedLetters := make(map[rune]bool)
 
 	// Variable pour garder une trace du nombre de lignes deja affichées dans le fichier du pendu hangman.txt
 	var linesDisplayed int
-
 
 	if *SaveLoad { // si le flag est utilisé
 		file, err := os.Open("save.txt") // on charge la sauvegarde
@@ -58,40 +57,40 @@ func Word() {
 			log.Fatal(err)
 		}
 		defer file.Close()
-	
+
 		var saveData map[string]interface{} // interface permet de stocker tout type de data
 
 		json.NewDecoder(file).Decode(&saveData)
-	
+
 		word = saveData["word"].(string) // je recupere la valeur word, en m'assurant qu'elle soit de type string
 
 		lives = int(saveData["lives"].(float64)) // on transforme en int
 
 		blanks = []rune(saveData["blanks"].(string)) // on transforme de string en rune
-	
-		// on reforme les lettres utilisé	
+
+		// on reforme les lettres utilisé
 		for _, letter := range saveData["usedLetters"].(string) {
 			usedLetters[rune(letter)] = true
 		}
 
 		allLetters = saveData["guessedLetters"].(string)
 	}
-	
 
 	for {
-		// show the word blanks and ask for letters
-		fmt.Printf("\n %d ❤️, Mot: %s, \n", lives, strings.Join(convertRuneSliceToStringSlice(blanks), " ")) // on convertie le slice de rune en slice de string
-		fmt.Println(" Mot de : ", len(word), " lettres ", "\n")
-		fmt.Println("Lettre déjà proposée : ", allLetters, "\n")
+		// j'imprime le mot en blank, le nombre de vie, le nombre de lettres du mot et les lettres déja utiliser
+		fmt.Printf("\n %d ❤️, Word : %s, \n", lives, strings.Join(convertRuneSliceToStringSlice(blanks), " "))
+		fmt.Print("Word of : ", len(word), " letters: ", "\n")
+		fmt.Print("You have already used the letters : ", allLetters, "\n")
 
 		var input string
 		fmt.Scanln(&input)
 		input = strings.ToLower(input)
 
+		// si le joueur entre STOP le programme s'arrete
 		if input == "stop" { // si le joueur entre STOP
 			saveData := map[string]interface{}{ // on enregistre l'état de la partie
 
-			// clé ici string	// type donc ici interface
+				// clé ici string	// type donc ici interface
 				"word":           word,
 				"lives":          lives,
 				"blanks":         string(blanks), // on stock en string sinon cela ne marche pas avec le JSON
@@ -113,62 +112,67 @@ func Word() {
 			fmt.Println("Votre partie a bien été sauvegardé")
 			break
 		}
-		
-		if len(input) >= 2 {
-			if input == string(wordRunes) {
-				// Cas où le joueur entre un mot complet
-				// Le joueur a deviné le mot correctement
-				fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
+
+		// Permet d'entrer un mot de 2 lettres ou plus
+		if len(input) > 1 {
+			if input == word { // si le mot en entré = mot choisi, on gagne
+				fmt.Printf("\n %d ❤️, Word: %s - You won, congrats!\n", lives, word)
 				break
-			} else {
-				// Le mot est incorrect, on retire 2 vies
+			} else { // sinon on perd 2 vie
 				lives -= 2
-				fmt.Printf("Mot incorrect ! Vous perdez 2 vies.\n")
+				fmt.Printf("\nWrong word! You lost 2 lives. %d ❤️ remaining.\n", lives)
+				linesDisplayed = showHangman(linesDisplayed)
+				linesDisplayed = showHangman(linesDisplayed)
+
+				if lives <= 0 {
+					fmt.Printf("\n 0 ❤️, Word: %s - Sorry, you lost!\n", word)
+					break
+				}
 			}
 		} else {
 
 			allLetters += input
 
-			inputLetter := rune(input[0])
-			// check provided letters
+			// check si la lettre en input à deja été rentré
+			for _, inputLetter := range input {
+				if usedLetters[inputLetter] {
+					fmt.Printf("\nYou have already used the letter: %c\n", inputLetter)
+					continue
+				}
 
-			if usedLetters[inputLetter] {
-				fmt.Printf("Vous avez déjà utilisé cette lettre: %c\n", inputLetter)
-				continue
-			}
+				usedLetters[inputLetter] = true
 
-			correctGuess := false
+				correctGuess := false
 
-			for i, wordLetter := range wordRunes {
-				if inputLetter == wordLetter || (inputLetter == 'e' && wordLetter == 'é') || (inputLetter == 'é' && wordLetter == 'e') {
-					blanks[i] = wordLetter
-					correctGuess = true
+				for i, wordLetter := range wordRunes {
+					if inputLetter == wordLetter || (inputLetter == 'e' && wordLetter == 'é') || (inputLetter == 'é' && wordLetter == 'e') {
+						blanks[i] = wordLetter
+						correctGuess = true
+					}
+				}
+
+				if !correctGuess { // si lettre en input non-présent dans le mot alors enlève 1 vie
+					lives--
+
+					// afficher hangman
+					linesDisplayed = showHangman(linesDisplayed)
 				}
 			}
 
-			if !correctGuess {
-				lives--
-
-				// afficher hangman
-				linesDisplayed = showHangman(linesDisplayed)
+			// si vie = 0 alors on perd
+			if lives <= 0 {
+				fmt.Printf("\n 0 ❤️, Mot: %s - Vous avez perdu!\n", string(wordRunes))
+				break
+			}
+			// if word is guessed, you won
+			if string(wordRunes) == string(blanks) {
+				fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
+				break
 			}
 		}
-
-		// if no more lives, you lost
-		if lives <= 0 {
-			fmt.Printf("\n 0 ❤️, Mot: %s - Vous avez perdu!\n", string(wordRunes))
-			break
-		}
-		// if word is guessed, you won
-		if string(wordRunes) == string(blanks) {
-			fmt.Printf("\n %d ❤️, Mot: %s - Vous avez gagné!\n", lives, string(wordRunes))
-			break
-		}
 	}
-
 }
 
-// Fonction qui permet de recupérer les lettres déjà utilisé 
 func getKeysFromMap(m map[rune]bool) []rune {
 	keys := []rune{}
 	for k := range m {
@@ -177,7 +181,6 @@ func getKeysFromMap(m map[rune]bool) []rune {
 	return keys
 }
 
-// Fonction pour convertir un slice de rune en slice de string
 func convertRuneSliceToStringSlice(runes []rune) []string {
 	strings := make([]string, len(runes))
 	for i, r := range runes {
@@ -186,7 +189,7 @@ func convertRuneSliceToStringSlice(runes []rune) []string {
 	return strings
 }
 
-// fonction pour afficher les 8 premieres du pendu
+// Fonction pour afficher le hangman
 func showHangman(linesDisplayed int) int {
 	hangmanFile, err := os.Open("dictionnaries/hangman.txt")
 	if err != nil {
@@ -195,17 +198,19 @@ func showHangman(linesDisplayed int) int {
 	defer hangmanFile.Close()
 
 	scanner := bufio.NewScanner(hangmanFile)
-	lineCount := 0
-	startLine := linesDisplayed // Lignes déja affichées
+
+	lineCount := 0 // on commence à la ligne 0 du fichier txt
+
+	startLine := linesDisplayed // Lignes déjà affichées
 
 	fmt.Println("\n--- Hangman Status ---")
 	for scanner.Scan() {
-		// Si on atteint 8 nouvelles lignes on arrete
+		// Si on atteint 8 nouvelles lignes, on arrête
 		if lineCount >= startLine+8 {
 			break
 		}
 
-		// On saute les lignes déja affichées
+		// On saute les lignes déjà affichées
 		if lineCount < startLine {
 			lineCount++
 			continue
@@ -223,6 +228,6 @@ func showHangman(linesDisplayed int) int {
 		log.Fatal(err)
 	}
 
-	fmt.Println("----------------------\n")
-	return lineCount // Retourne le nombre total de lignes affichées
+	fmt.Printf("----------------------\n")
+	return lineCount
 }
