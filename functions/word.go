@@ -11,7 +11,6 @@ import (
 	"strings"
 )
 
-// voir strings.Contains() pour le mot https://www.geeksforgeeks.org/string-contains-function-in-golang-with-examples/
 
 func Word() {
 
