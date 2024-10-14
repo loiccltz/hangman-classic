@@ -2,7 +2,7 @@
 
 ## Réalisé par :
 - Alexandre Reffert
-- Axel
+- Axel Macé
 - Loic Collatuzo
 
 ---
