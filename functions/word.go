@@ -69,7 +69,7 @@ func Word() {
 
 		blanks = []rune(saveData["blanks"].(string)) // on transforme de string en rune
 	
-		// on reforme les lettres utilisé
+		// on reforme les lettres utilisé	
 		for _, letter := range saveData["usedLetters"].(string) {
 			usedLetters[rune(letter)] = true
 		}
@@ -113,6 +113,7 @@ func Word() {
 			fmt.Println("Votre partie a bien été sauvegardé")
 			break
 		}
+		
 		if len(input) >= 2 {
 			if input == string(wordRunes) {
 				// Cas où le joueur entre un mot complet
