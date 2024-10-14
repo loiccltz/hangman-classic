@@ -76,10 +76,19 @@ func Word() {
 		allLetters = saveData["guessedLetters"].(string)
 	}
 
+	// Correspondance des lettres avec accents
+	SpecialLetters := map[rune][]rune{
+		'a': {'a', 'à', 'â'},
+		'e': {'e', 'é', 'ê', 'è', 'ë'},
+		'i': {'i', 'ï', 'î'},
+		'o': {'o', 'ô'},
+		'u': {'u', 'ù', 'û'},
+	}
+
 	for {
 		// j'imprime le mot en blank, le nombre de vie, le nombre de lettres du mot et les lettres déja utiliser
 		fmt.Printf("\n %d ❤️, Word : %s, \n", lives, strings.Join(convertRuneSliceToStringSlice(blanks), " "))
-		fmt.Print("Word of : ", len(word), " letters: ", "\n")
+		fmt.Print("Word of : ", len([]rune(word)), " letters: ", "\n")
 		fmt.Print("You have already used the letters : ", allLetters, "\n")
 
 		var input string
@@ -115,10 +124,10 @@ func Word() {
 
 		// Permet d'entrer un mot de 2 lettres ou plus
 		if len(input) > 2 {
-			if input == word { // si le mot en entré = mot choisi, on gagne
+			if removeAccents(input) == removeAccents(word) {
 				fmt.Printf("\n %d ❤️, Word: %s - You won, congrats!\n", lives, word)
 				break
-			} else { // sinon on perd 2 vie
+			} else {
 				lives -= 2
 				fmt.Printf("\nWrong word! You lost 2 lives. %d ❤️ remaining.\n", lives)
 				linesDisplayed = showHangman(linesDisplayed)
@@ -133,7 +142,6 @@ func Word() {
 
 			allLetters += input
 
-			// check si la lettre en input à deja été rentré
 			for _, inputLetter := range input {
 				if usedLetters[inputLetter] {
 					fmt.Printf("\nYou have already used the letter: %c\n", inputLetter)
@@ -145,16 +153,27 @@ func Word() {
 				correctGuess := false
 
 				for i, wordLetter := range wordRunes {
-					if inputLetter == wordLetter || (inputLetter == 'e' && wordLetter == 'é') || (inputLetter == 'é' && wordLetter == 'e') {
-						blanks[i] = wordLetter
-						correctGuess = true
+					// on verifie les accents si ils existent dans specialLetters
+					if letters, exists := SpecialLetters[inputLetter]; exists {
+						for _, possibleLetter := range letters {
+							if wordLetter == possibleLetter {
+								blanks[i] = wordLetter
+								correctGuess = true
+							}
+						}
+					} else {
+						// Sinon, on vérifie la lettre directement
+						if wordLetter == inputLetter {
+							blanks[i] = wordLetter
+							correctGuess = true
+						}
 					}
 				}
 
-				if !correctGuess { // si lettre en input non-présent dans le mot alors enlève 1 vie
+				// Si la lettre n'est pas dans le mot on enlève une vie
+				if !correctGuess {
 					lives--
-
-					// afficher hangman
+					fmt.Printf("\nWrong guess! %d ❤️ remaining.\n", lives)
 					linesDisplayed = showHangman(linesDisplayed)
 				}
 			}
@@ -187,6 +206,17 @@ func convertRuneSliceToStringSlice(runes []rune) []string {
 		strings[i] = string(r)
 	}
 	return strings
+}
+
+func removeAccents(input string) string {
+	replacer := strings.NewReplacer(
+		"à", "a", "â", "a",
+		"é", "e", "ê", "e", "è", "e", "ë", "e",
+		"ï", "i", "î", "i",
+		"ô", "o",
+		"ù", "u", "û", "u",
+	)
+	return replacer.Replace(input)
 }
 
 // Fonction pour afficher le hangman
@@ -231,5 +261,3 @@ func showHangman(linesDisplayed int) int {
 	fmt.Printf("----------------------\n")
 	return lineCount
 }
-
-
